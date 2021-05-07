@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
     <meta charset="UTF-8">
-    
     <title>Read, Write, Update, Delete Data Firebase using JavaScript</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    
 </head>
 <body>
 
@@ -22,17 +23,21 @@
             <label for="pwd">Production Sales</label>
             <input type="number" class="form-control" id="rollbox">
           </div>
-          
           <button  class="btn btn-primary" id = "insert">Insert</button>
           <button  class="btn btn-primary" id = "select">Select</button>
           <button  class="btn btn-primary" id = "update">Update</button>
           <button  class="btn btn-primary" id = "delete">Delete</button>
-    
-    
-          
+          <button  class="btn btn-primary" id = "display">Display</button>
+          <div id="results">
+
+
+
+
+          </div>
+
+
       </div>
-      
-   
+
     <!--Firebase Libraries-->
     <script src="https://www.gstatic.com/firebasejs/8.4.3/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.4.3/firebase-auth.js"></script>
@@ -59,20 +64,18 @@
 var nameV, rollV;
 
 function Ready() {
-    
     nameV = document.getElementById('namebox').value;
     rollV = document.getElementById('rollbox').value;
-
 }
 
+
 // Insert
-
 document.getElementById('insert').onclick = function(){
-
 Ready();
 firebase.database().ref('student/' + nameV).set({
     NameOfStudent:nameV,
     RollNo:rollV
+    
 });
 
 }
@@ -109,6 +112,36 @@ firebase.database().ref('student/' + nameV).remove();
 
 }
 
+document.getElementById('display').onclick = function () {
+
+    Ready();
+    var x, txt = "";
+
+    firebase.database().ref('student/' + nameV).on('value', function(snapshot) {
+        snapshot.forEach(function (childSnapshot){
+            var data = childSnapshot.val();
+            for (x in data) {
+  txt += data[x] + " " + "<br>";
+
+};
+
+
+document.getElementById("results").innerHTML = txt;
+
+
+
+
+
+        })
+
+    }); 
+
+
+
+}
+
+
+    
     </script>
     
 </body>
