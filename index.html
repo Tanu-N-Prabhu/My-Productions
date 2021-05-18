@@ -5,10 +5,10 @@
     <meta charset="UTF-8">
     <title>Read, Write, Update, Delete Data Firebase using JavaScript</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
 </head>
 <body>
 
@@ -17,26 +17,62 @@
         <h2>Excel Promotions Sales</h2>
           <div class="form-group">
             <label for="email">Date</label>
-            <input type="date" class="form-control" id = "namebox">
+            <input type="date" class="form-control" id = "namebox" >
           </div>
           <div class="form-group">
             <label for="pwd">Production Sales</label>
-            <input type="number" class="form-control" id="rollbox">
+            <input type="number"class="form-control" id="rollbox">
           </div>
+          
+          <div class="form-group">
+            <label for="pwd">Location</label>
+            <select class="form-control" aria-label="Default select example" id = "location">
+                <option selected>Choose the Location</option>
+                <option value="Canadian Tire - Regina">Canadian Tire - Regina</option>
+                <option value="Canadian Tire - Saskatoon">Canadian Tire - Saskatoon</option>
+                <option value="Canadian Tire - Melville">Canadian Tire - Melville</option>
+                <option value="Canadian Tire - Yorkton">Canadian Tire - Yorkton</option>
+                <option value="Hague Gas Station - Saskatoon">Hague Gas Station - Saskatoon</option>
+
+
+                <option value="3">Mikes Independent Store - Regina</option>
+              </select>   
+
+            </div>
+
+
           <button  class="btn btn-primary" id = "insert">Insert</button>
           <button  class="btn btn-primary" id = "select">Select</button>
           <button  class="btn btn-primary" id = "update">Update</button>
           <button  class="btn btn-primary" id = "delete">Delete</button>
           <button  class="btn btn-primary" id = "display">Display</button>
-          <div id="results">
+          
+          <button class="btn btn-primary" onclick="ClearP();">Clear</button>
+
+          <br>
+          <br>
+        <table class="table table-dark">
+        
+            <thead>
 
 
+                <th>Sno</th>
+                <th>Date (yyyy/mm/dd)</th>
+                <th>Sales</th>
+                <th>Location</th>
+            </thead>
+    
+    <tbody id="tbody1">
 
+      
+      
+      
+    
+    </tbody>
+    
+        </table>
 
-          </div>
-
-
-      </div>
+        </div>
 
     <!--Firebase Libraries-->
     <script src="https://www.gstatic.com/firebasejs/8.4.3/firebase-app.js"></script>
@@ -59,22 +95,38 @@
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
 
+    $('#display').on('click', function(){
+    $('#display').attr("disabled", true);
+});
 // Read the Data
 
-var nameV, rollV;
+var nameV, rollV, locV;
 
 function Ready() {
     nameV = document.getElementById('namebox').value;
     rollV = document.getElementById('rollbox').value;
+    locV = document.getElementById('location').value;
 }
 
+function ClearP(){
+    var inputs = document.getElementsByTagName("input");
+    for(var i=0;i<inputs.length;i++)
+        inputs[i].value = '';
 
+        var inputs1 = document.getElementsByTagName("select");
+    for(var i=0;i<inputs1.length;i++)
+        inputs1[i].value = '';
+        $("#tbody1").remove(); 
+
+
+}
 // Insert
 document.getElementById('insert').onclick = function(){
 Ready();
 firebase.database().ref('student/' + nameV).set({
     NameOfStudent:nameV,
-    RollNo:rollV
+    RollNo:rollV,
+    Location:locV
     
 });
 
@@ -87,6 +139,8 @@ document.getElementById("select").onclick = function() {
     Ready();
     firebase.database().ref('student/' + nameV).on('value', function(snapshot) {
         document.getElementById('rollbox').value = snapshot.val().RollNo;
+        document.getElementById('location').value = snapshot.val().Location;
+
     });
     
 }
@@ -97,12 +151,15 @@ document.getElementById('update').onclick = function(){
 
 Ready();
 firebase.database().ref('student/' + nameV).update({
-    RollNo:rollV
+    RollNo:rollV,
+    Location:locV
 });
 
 }
 
 // Delete
+
+
 
 
 document.getElementById('delete').onclick = function(){
@@ -112,34 +169,68 @@ firebase.database().ref('student/' + nameV).remove();
 
 }
 
-document.getElementById('display').onclick = function () {
 
-    Ready();
-    var x, txt = "";
-
-    firebase.database().ref('student/' + nameV).on('value', function(snapshot) {
-        snapshot.forEach(function (childSnapshot){
-            var data = childSnapshot.val();
-            for (x in data) {
-  txt += data[x] + " " + "<br>";
-
-};
+document.getElementById('display').onclick = function(){
 
 
-document.getElementById("results").innerHTML = txt;
+ 
+//Get all the data
 
+function SelectAllData() {
 
-
-
-
-        })
-
-    }); 
-
-
-
+    firebase.database().ref('student').once('value',
+    function(AllRecords){
+        AllRecords.forEach(
+            function(CurrentRecord){
+                var name = CurrentRecord.val().NameOfStudent;
+                var roll = CurrentRecord.val().RollNo;
+                var loc = CurrentRecord.val().Location;
+                AddItemsToTable(name, roll, loc);
+            }
+        );
+    });
+    
 }
 
+window.onload = SelectAllData();
+
+// Filling the Table
+var stdNo = 0;
+function AddItemsToTable(name, roll, loc) {
+    var tbody =  document.getElementById('tbody1');
+
+    var trow = document.createElement('tr');
+
+    
+    var td1 = document.createElement('td');
+    var td2 = document.createElement('td');
+    var td3 = document.createElement('td');
+    var td4 = document.createElement('td');
+
+
+
+  
+
+    td1.innerHTML = ++stdNo;
+    td2.innerHTML = name;
+    td3.innerHTML = roll;
+    td4.innerHTML = loc;
+
+   
+
+    trow.appendChild(td1);
+    trow.appendChild(td2);
+    trow.appendChild(td3);
+    trow.appendChild(td4);
+
+  
+
+    tbody.appendChild(trow);
+
+}
+}
+
+    </script>
 
     
     </script>
