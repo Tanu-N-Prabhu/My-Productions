@@ -15,7 +15,6 @@
      <script src="https://www.gstatic.com/firebasejs/8.4.3/firebase-auth.js"></script>
      <script src="https://www.gstatic.com/firebasejs/8.4.3/firebase-database.js"></script> 
  
-
 </head>
 <body>
 
@@ -48,12 +47,16 @@
 
           <div class="row">
             <div class="col-lg-4 col-lg-12">
-                <button  class="btn btn-primary btn-block" id = "insert">Insert</button>
-                <button  class="btn btn-primary btn-block" id = "select">Select</button>
-                <button  class="btn btn-primary btn-block" id = "update">Update</button>
-                <button  class="btn btn-primary btn-block" id = "delete">Delete</button>
-                <button  class="btn btn-primary btn-block" id = "display">Display</button>
+                <button class="btn btn-primary btn-block" id = "insert">Insert</button>
+                <button class="btn btn-primary btn-block" id = "select">Select</button>
+                <button class="btn btn-primary btn-block" id = "update">Update</button>
+                <button class="btn btn-primary btn-block" id = "delete">Delete</button>
+                <button class="btn btn-primary btn-block" id = "display">Display</button>
                 <button class="btn btn-primary btn-block" onclick="ClearP();">Clear</button>
+                <button class="btn btn-primary btn-block" onclick="exportData()">
+                    <span class="glyphicon glyphicon-download"></span>
+                    Export As CSV</button>
+        
             </div><!-- /col -->
           </div><!-- /row -->
           
@@ -68,6 +71,9 @@
         </tbody>
     
         </table>
+
+        
+
         </div>
 
     <script id = "MainScript">
@@ -104,10 +110,12 @@ function ClearP(){
     for(var i=0;i<inputs.length;i++)
         inputs[i].value = '';
 
-        var inputs1 = document.getElementsByTagName("select");
+    var inputs1 = document.getElementsByTagName("select");
     for(var i=0;i<inputs1.length;i++)
         inputs1[i].value = '';
         $("#tbody1").remove(); 
+
+        window.location.reload();
 
 
 }
@@ -121,6 +129,7 @@ firebase.database().ref('student/' + nameV).set({
     Location:locV
     
 });
+
 }
 
 // Selection 
@@ -212,6 +221,50 @@ function AddItemsToTable(name, roll, loc) {
 
     tbody.appendChild(trow);
 }
+}
+
+function exportData(){
+    /* Get the HTML data using Element by Id */
+    var table = document.getElementById("table");
+
+    /* Declaring array variable */
+    var rows =[];
+
+      //iterate through rows of table
+    for(var i=0,row; row = table.rows[i];i++){
+        //rows would be accessed using the "row" variable assigned in the for loop
+        //Get each cell value/column from the row
+        column1 = row.cells[0].innerText;
+        column2 = row.cells[1].innerText;
+        column3 = row.cells[2].innerText;
+        column4 = row.cells[3].innerText;
+
+    /* add a new records in the array */
+        rows.push(
+            [
+                column1,
+                column2,
+                column3,
+                column4
+            ]
+        );
+
+        }
+        csvContent = "data:text/csv;charset=utf-8,";
+         /* add the column delimiter as comma(,) and each row splitted by new line character (\n) */
+        rows.forEach(function(rowArray){
+            row = rowArray.join(",");
+            csvContent += row + "\r\n";
+        });
+
+        /* create a hidden <a> DOM node and set its download attribute */
+        var encodedUri = encodeURI(csvContent);
+        var link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "Stock_Price_Report.csv");
+        document.body.appendChild(link);
+         /* download the data file named "Stock_Price_Report.csv" */
+        link.click();
 }
 
     </script>
